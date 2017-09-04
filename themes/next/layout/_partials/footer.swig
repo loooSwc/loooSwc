@@ -20,7 +20,7 @@
     </span>
   {% endif %}
   <span class="post-meta-divider">|</span>
-  <a href="http://www.miitbeian.gov.cn" target="_blank">¾©ICP±¸17048984</a>
+  <a href="http://www.miitbeian.gov.cn" target="_blank">äº¬ICPå¤‡17048984</a>
 </div>
 
 {% if theme.copyright %}
