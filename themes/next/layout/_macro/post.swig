@@ -196,7 +196,9 @@
           {% if not is_index and theme.busuanzi_count.enable and theme.busuanzi_count.page_pv %}
             <span class="post-meta-divider">|</span>
             <span class="page-pv">{{ theme.busuanzi_count.page_pv_header }}
+	    浏览
             <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>{{ theme.busuanzi_count.page_pv_footer }}
+	    次
             </span>
           {% endif %}
 
