@@ -2,7 +2,7 @@
 title: zookeeper选举机制
 date: 2017-12-13 15:38:02
 tags:
-  - zookeeper
+  - Zookeeper
 ---
 ## zookeeper运行模式
 ZooKeeper服务有两种不同的运行模式。一种是"独立模式"(standalone mode)，即只有一个ZooKeeper服务器。这种模式较为简单，比较适合于测试环境，甚至可以在单元测试中采用，但是不能保证高可用性和恢复性。在生产环境中的ZooKeeper通常以"复制模式"(replicated mode)运行于一个计算机集群上，这个计算机集群被称为一个"集合体"(ensemble)。
