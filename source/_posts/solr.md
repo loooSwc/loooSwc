@@ -87,7 +87,12 @@ schema.xml这个配置文件可以在你下载solr包的安装解压目录的\so
 Fieldtype：就是属性类型的意思，像int，String，Boolean种类型，同时也可以自己添加属性类型，例如添加中文分词类型text_ik（ikanalyzer，支持自定义扩展词典与停止词词典），则需要添加
 ```
 <fieldType name="text_ik" class="solr.TextField">
-	<analyzer class="org.wltea.analyzer.lucene.IKAnalyzer"/>  
+  	<analyzer type="index">
+        <tokenizer class="org.apache.lucene.analysis.ik.IKTokenizerFactory" useSmart="true"/>
+    </analyzer>
+    <analyzer type="query">
+        <tokenizer class="org.apache.lucene.analysis.ik.IKTokenizerFactory" useSmart="true"/>
+    </analyzer>
 </fieldType>
 ```
 若使用英文分词，FieldType选择自带的text_en，俄文分词选择自带的text_ru。
@@ -223,7 +228,12 @@ ZK_CLIENT_TIMEOUT="15000"
 在`managed-schema`配置文件中，增加如下内容：
 ```
 <fieldType name="text_ik" class="solr.TextField">
-	<analyzer class="org.wltea.analyzer.lucene.IKAnalyzer"/>  
+  	<analyzer type="index">
+        <tokenizer class="org.apache.lucene.analysis.ik.IKTokenizerFactory" useSmart="true"/>
+    </analyzer>
+    <analyzer type="query">
+        <tokenizer class="org.apache.lucene.analysis.ik.IKTokenizerFactory" useSmart="true"/>
+    </analyzer>
 </fieldType>
 ```
 下载最新的`ikanalyzer`包（ik分词器在2012年后就不在更新了，所以只找到了`ik-analyzer-solr5-5.x`版本），解压后将`ext.dic`，`IKAnalyzer.cfg.xml`，`stopword.dic`配置文件复制到/conf目录下，将`ik-analyzer-solr5-5.x.jar`，`solr-analyzer-ik-5.1.0.jar`复制到`server/solr-webapp/webapp/WEB-INF/lib`目录下。
