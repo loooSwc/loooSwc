@@ -86,13 +86,8 @@ schema.xml这个配置文件可以在你下载solr包的安装解压目录的\so
 #### Fieldtype
 Fieldtype：就是属性类型的意思，像int，String，Boolean种类型，同时也可以自己添加属性类型，例如添加中文分词类型text_ik（ikanalyzer，支持自定义扩展词典与停止词词典），则需要添加
 ```
-<fieldType name="text_ik" class="solr.TextField" positionIncrementGap="100">
-  <analyzer type="index">
-    <tokenizer class="org.apache.lucene.analysis.cn.smart.HMMChineseTokenizerFactory"/>
-  </analyzer>
-  <analyzer type="query">
-    <tokenizer class="org.apache.lucene.analysis.cn.smart.HMMChineseTokenizerFactory"/>
-  </analyzer>
+<fieldType name="text_ik" class="solr.TextField">
+	<analyzer class="org.wltea.analyzer.lucene.IKAnalyzer"/>  
 </fieldType>
 ```
 若使用英文分词，FieldType选择自带的text_en，俄文分词选择自带的text_ru。
@@ -227,13 +222,8 @@ ZK_CLIENT_TIMEOUT="15000"
 ### 设置中文分词
 在`managed-schema`配置文件中，增加如下内容：
 ```
-<fieldType name="text_ik" class="solr.TextField" positionIncrementGap="100">
-  <analyzer type="index">
-    <tokenizer class="org.apache.lucene.analysis.cn.smart.HMMChineseTokenizerFactory"/>
-  </analyzer>
-  <analyzer type="query">
-    <tokenizer class="org.apache.lucene.analysis.cn.smart.HMMChineseTokenizerFactory"/>
-  </analyzer>
+<fieldType name="text_ik" class="solr.TextField">
+	<analyzer class="org.wltea.analyzer.lucene.IKAnalyzer"/>  
 </fieldType>
 ```
 下载最新的`ikanalyzer`包（ik分词器在2012年后就不在更新了，所以只找到了`ik-analyzer-solr5-5.x`版本），解压后将`ext.dic`，`IKAnalyzer.cfg.xml`，`stopword.dic`配置文件复制到/conf目录下，将`ik-analyzer-solr5-5.x.jar`，`solr-analyzer-ik-5.1.0.jar`复制到`server/solr-webapp/webapp/WEB-INF/lib`目录下。
@@ -248,6 +238,11 @@ zkcli.sh -zkhost 10.8.2.114:2181,10.8.2.115:2181,10.8.2.116:2181 -cmd upconfig -
 ### 创建Collection
 在Collections中点击`Add Collection`（相当于数据库的表），输入对应信息：
 ![](https://i.imgur.com/ekchyqA.png)
+总体上说，当节点数和Shard数相等时，ElasticSearch集群的性能可以达到最优。即，对于一个3节点集群，我们为每个集群节点分配一个Shard，总共3个Shard。但是由于ElasticSearch的不可变性（Immutable）的限制，系统无法对Shard进行重新拆分分配，除非重新索引这个文件集合。所以，当我们需要增加更多节点的时候，又希望Shard能利用到增加节点带来的系统性能提升时，我们就不得不进行重新索引，由于重索引开销巨大，这是我们不希望看到的。
+如果需要重新建立索引，将会是一个巨大的开销，为了支持未来可能的水平扩展，我们会为集群分配比node数更多的shard数，也就是说每个节点会有多个Shard。
+如果单个node分配多个shard，就会引入另外一系列的性能问题，我们知道对于任意一次完整的搜索，ElasticSearch会分别对每个shard进行查询，最后进行汇总。当节点数和shard数是一对一的时候，所有的查询可以并行运行。但是，对于具有多个shard的节点，如果磁盘是15000RPM或SSD，可能会相对较快，但是这也会存在等待响应的问题，所以通常不推荐一个节点超过2个shard。
+3节点6shard，即每个节点2shard，这可以使我们在未来轻松的横向扩展到6个节点，应对许多极端的场景。
+
 创建成功后可在`Cloud`或`Collections`中查看
 `Cloud`
 ![Cloud](https://i.imgur.com/QisssTU.png)
