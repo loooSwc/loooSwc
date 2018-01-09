@@ -1,10 +1,3 @@
----
-title: SolrCloud
-date: 2018-01-08 17:06:02
-tags:
-  - Solr
-  - Zookeeper
----
 ## 背景
 对于电商平台来说，搜索商品是必不可少的一步，而对于海量的商品数据，若只使用数据库查询，无疑是又慢又耗时的，并且一些特定场景仅使用数据库查询无法做到，这时我们就需要全文检索技术实现搜索功能。
 ## solr是什么
@@ -237,6 +230,17 @@ ZK_CLIENT_TIMEOUT="15000"
 </fieldType>
 ```
 下载最新的`ikanalyzer`包（ik分词器在2012年后就不在更新了，所以只找到了`ik-analyzer-solr5-5.x`版本），解压后将`ext.dic`，`IKAnalyzer.cfg.xml`，`stopword.dic`配置文件复制到/conf目录下，将`ik-analyzer-solr5-5.x.jar`，`solr-analyzer-ik-5.1.0.jar`复制到`server/solr-webapp/webapp/WEB-INF/lib`目录下。
+除此之外，还有其他中文分词器的选择
+* `mmseg4j`（最后一次更新是2017年，要求 lucene/solr [6.0.0, ], 测试到 6.3.0 通过），特点是自带搜狗词库，不过不支持停止词
+* `paoding`（最后一次更新是2009年，且作者不再更新和维护）
+* `smartcn`（smartcn为solr自带的中文分词，随版本更新，但貌似不支持自定义词库，且对于自带词库中没有的词，采用单字拆分）
+
+| 名称 | 最近更新 | 速度(网上情报)|
+|------| --------| ------------|
+| mmseg4j|2017|complex 60W字/s (1200 KB/s) simple 100W字/s (1900 KB/s) 使用sougou词库，也可自定义(complex\simple\MaxWord) 扩展性支持、其它|
+|IKAnalyzer |2012|IK2012 160W字/s (3000KB/s) 支持用户词典扩展定义、支持自定义停止词 (智能\细粒度)|
+|paoding|2008|100W字/s 支持不限制个数的用户自定义词库|
+
 ### 启动solr
 solr有两种方式，一种是单机版，一种是云版，启动方式都相同，皆为在`solr-7.2.0/bin/`目录下，使用`solr start -force`方式启动，若没有配置第4步，则为单机版，反之为云版。系统第一次启动时，会将`configsets/_default`更新到zookeeper中并作为默认配置文件，需执行
 ```
@@ -370,4 +374,60 @@ query.setParam("optimize","true");
 query.setParam("entity","product");
 query.setParam("commit","true");
 client.query(query);
+```
+### 多条件分页查询
+```
+SolrQuery query  = new SolrQuery();
+query.setQuery("(name_type:plus AND type:苹果) OR type:华为");//查询名称和描述中包含plus和type为苹果的或者type为华为的信息
+query.setFilterQueries("price:[0 TO 10000]");//在查询价格范围为大于等于0小于等于10000
+query.setFields("name","type","price","id");//只展示name，type，price字段
+query.setStart(0);  //从第0条开始
+query.setRows(10);  //展示10条
+query.setSort("price", SolrQuery.ORDER.asc);//按照price正序
+query.setHighlight(true);//开启结果高亮
+query.addHighlightField("name").addHighlightField("type");//name和type字段匹配高亮
+query.setHighlightSimplePre("<a color=\"red\">");//设置高亮标记（前）
+query.setHighlightSimplePost("</a>");//设置高亮标记（后）
+QueryResponse response =  client.query(query);
+Map<String, Map<String, List<String>>> map =response.getHighlighting();
+SolrDocumentList documents = response.getResults();
+for(SolrDocument doc : documents){
+   Map<String,List<String>> mpas = map.get(doc.get("id"));
+   String name=mpas.get("name")!=null?mpas.get("name").get(0):doc.get("name").toString();
+   String type=mpas.get("type")!=null?mpas.get("type").get(0):doc.get("type").toString();
+   System.out.println("name:"+name+"\t"+"type:"+type+"\t"+"price:"+doc.get("price"));
+}
+/**
+* 查询结果:
+name:<a color="red">华为</a> NOVA 2S	 					  type:<a color="red">华为</a>	price:2639.0
+name:荣耀V9	                  							  type:<a color="red">华为</a>	price:2745.0
+name:<a color="red">苹果</a>iPhone8 <a color="red">Plus</a>	type:<a color="red">苹果</a>	price:5686.0
+*/
+```
+### 使用group查询
+```
+SolrQuery query  = new SolrQuery();
+query.setQuery("(name_content:plus AND type:苹果) OR type:华为");//查询名称和描述中包含plus和type为苹果的或者type为华为的信息
+query.setFilterQueries("price:[0 TO 10000]");//在查询价格范围为大于等于0小于等于10000
+query.setFields("name","type","price");//只展示name，type，price字段
+query.setStart(0);  //从第0条开始
+query.setRows(10);  //展示10条
+query.setSort("price", SolrQuery.ORDER.asc);//按照price正序
+query.setParam("group", "true");  //开启分组
+query.setParam("group.field", "type");//以type分组
+
+QueryResponse response =  client.query(query);
+GroupResponse groupRes =response.getGroupResponse();
+List<GroupCommand> list = groupRes.getValues();
+for(GroupCommand command : list){
+    List<Group> groups = command.getValues();
+    for(Group group : groups){
+        System.out.println("品牌为："+group.getGroupValue());
+    }
+}
+/**
+* 查询结果:
+* 品牌为：华为
+* 品牌为：苹果
+*/
 ```
