@@ -12,20 +12,21 @@ Spring Cloud Config为分布式系统中的外部配置提供服务器和客户�
 Spring Boot 版本为：`1.5.13.RELEASE`，Spring Cloud版本为：`Dalston.SR5`。（这里为什么要特别注明版本？因为Spring Boot2.x版本后的配置中心与1.5x版本不一样）
 ### 新建一个ConfigServer
 #### pom.xml
-```
-<!-- 声明该工程需要使用配置中心服务功能 -->
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-config</artifactId>
-</dependency>
 
-<!--configServer所需依赖  -->
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-config-server</artifactId>
-</dependency>
 
-```
+	<!-- 声明该工程需要使用配置中心服务功能 -->
+	<dependency>
+	    <groupId>org.springframework.cloud</groupId>
+	    <artifactId>spring-cloud-starter-config</artifactId>
+	</dependency>
+	
+	<!--configServer所需依赖  -->
+	<dependency>
+	    <groupId>org.springframework.cloud</groupId>
+	    <artifactId>spring-cloud-config-server</artifactId>
+	</dependency>
+
+
 #### bootstrap.yml
 
 ```
