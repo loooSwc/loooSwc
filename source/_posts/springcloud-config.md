@@ -29,36 +29,36 @@ Spring Boot 版本为：`1.5.13.RELEASE`，Spring Cloud版本为：`Dalston.SR5`
 
 #### bootstrap.yml
 
-```
-spring:
-  application:
-    name: config
-  profiles:
-    active: native  # 配置使用本地储存
-  cloud:
-    config:
-      server:
-        native:
-          search-locations: file:E:\\gitProjects\\spring-cloud\\springcloud-config\\config\\src\\main\\resources\\properties  # 搜索目录下的properties文件夹下的文件
-server:
-  port: 7000
+	
+	spring:
+	  application:
+	    name: config
+	  profiles:
+	    active: native  # 配置使用本地储存
+	  cloud:
+	    config:
+	      server:
+	        native:
+	          search-locations: file:E:\\gitProjects\\spring-cloud\\springcloud-config\\config\\src\\main\\resources\\properties  # 搜索目录下的properties文件夹下的文件
+	server:
+	  port: 7000
 
-```
+
 > `search-locations`中为什么不用`classpath:properties/`？因为使用classpath的方式配置中心服务端无法做到及时更新。
 > 为什么使用`bootstrap.yml`而不使用`application.yml`？因为`bootstrap.yml`会先于`application.yml`加载。
 > `active`有native，git，svn三种方式；
 
 该目录下有一个`mail-service-dev.yml`配置文件，内容是：
-```
-name: cxy
-spring:
-  datasource:
-    driver-class-name: com.mysql.jdbc.Driver
-#    url: jdbc:mysql://10.8.5.100:3306/acmtc
-    url: jdbc:mysql://10.8.3.40:3306/acmtc
-    username: root
-    password: root
-```
+
+	name: cxy
+	spring:
+	  datasource:
+	    driver-class-name: com.mysql.jdbc.Driver
+	#    url: jdbc:mysql://10.8.5.100:3306/acmtc
+	    url: jdbc:mysql://10.8.3.40:3306/acmtc
+	    username: root
+	    password: root
+
 > 配置文件命名规则：
 > /{application}/{profile}[/{label}]
 > /{application}-{profile}.yml
@@ -67,155 +67,155 @@ spring:
 > /{label}/{application}-{profile}.properties
 
 #### App.java
-```
-@SpringBootApplication
-@EnableConfigServer        // 声明是配置中心服务端
-public class App{
-    public static void main( String[] args ){
-        SpringApplication.run(App.class, args);
-    }
-}
-```
+
+	@SpringBootApplication
+	@EnableConfigServer        // 声明是配置中心服务端
+	public class App{
+	    public static void main( String[] args ){
+	        SpringApplication.run(App.class, args);
+	    }
+	}
+
 启动`App.java`，访问`http://localhost:7000/mail-service/dev`，可以看到配置信息：
-```
-{
-  "name": "mail-service",
-  "profiles": [
-    "dev"
-  ],
-  "label": null,
-  "version": null,
-  "state": null,
-  "propertySources": [
-    {
-      "name": "file:E://gitProjects//spring-cloud//springcloud-config//config//src//main//resources//properties/mail-service-dev.yml",
-      "source": {
-        "name": "cxy",
-        "spring.datasource.driver-class-name": "com.mysql.jdbc.Driver",
-        "spring.datasource.url": "jdbc:mysql://10.8.3.40:3306/acmtc",
-        "spring.datasource.username": "root",
-        "spring.datasource.password": "root"
-      }
-    }
-  ]
-}
-```
+	
+	{
+	  "name": "mail-service",
+	  "profiles": [
+	    "dev"
+	  ],
+	  "label": null,
+	  "version": null,
+	  "state": null,
+	  "propertySources": [
+	    {
+	      "name": "file:E://gitProjects//spring-cloud//springcloud-config//config//src//main//resources//properties/mail-service-dev.yml",
+	      "source": {
+	        "name": "cxy",
+	        "spring.datasource.driver-class-name": "com.mysql.jdbc.Driver",
+	        "spring.datasource.url": "jdbc:mysql://10.8.3.40:3306/acmtc",
+	        "spring.datasource.username": "root",
+	        "spring.datasource.password": "root"
+	      }
+	    }
+	  ]
+	}
+
 
 ### 新建一个ConfigClient
 
 #### pom.xml
 
-```
-<!-- 告诉spring cloud这个工程以web方式运行 -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-web</artifactId>
-</dependency>
+	
+	<!-- 告诉spring cloud这个工程以web方式运行 -->
+	<dependency>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-starter-web</artifactId>
+	</dependency>
+	
+	<!-- 声明该工程需要使用配置中心服务功能 -->
+	<dependency>
+	    <groupId>org.springframework.cloud</groupId>
+	    <artifactId>spring-cloud-starter-config</artifactId>
+	</dependency>
+	
+	<!-- 连接数据库的基本功能 -->
+	<dependency>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-starter-jdbc</artifactId>
+	</dependency>
+	
+	<dependency>
+	    <groupId>mysql</groupId>
+	    <artifactId>mysql-connector-java</artifactId>
+	    <scope>runtime</scope>
+	</dependency>
 
-<!-- 声明该工程需要使用配置中心服务功能 -->
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-config</artifactId>
-</dependency>
-
-<!-- 连接数据库的基本功能 -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-jdbc</artifactId>
-</dependency>
-
-<dependency>
-    <groupId>mysql</groupId>
-    <artifactId>mysql-connector-java</artifactId>
-    <scope>runtime</scope>
-</dependency>
-```
 #### bootstrap.yml
-```
-spring:
-  application:
-    name: mail-service
-  cloud:
-    config:
-      uri: http://localhost:7000/
-      profile: dev
-server:
-  port: 8000
-```
+
+	spring:
+	  application:
+	    name: mail-service
+	  cloud:
+	    config:
+	      uri: http://localhost:7000/
+	      profile: dev
+	server:
+	  port: 8000
+
 #### App.java
-```
-@SpringBootApplication
-@RestController
-public class App{
-    public static void main( String[] args )
-    {
-        SpringApplication.run(App.class, args);
-    }
+	
+	@SpringBootApplication
+	@RestController
+	public class App{
+	    public static void main( String[] args )
+	    {
+	        SpringApplication.run(App.class, args);
+	    }
+	
+	    @Autowired
+	    private Environment environment;
+	
+	    @Autowired
+	    private JdbcTemplate jdbcTemplate;
+	
+	    @RequestMapping(value = "/hi", method = RequestMethod.GET)
+	    @RefreshScope
+	    public String hi(){
+	        return "Hello "+ environment.getProperty("name");
+	    }
+	
+	    @RequestMapping(value = "/hiDb", method = RequestMethod.GET)
+	    public String hiDb(){
+	        List<User> list = jdbcTemplate.query("select * from user",new Object[]{},new BeanPropertyRowMapper(User.class));
+	        String account = "";
+	        if(list!=null&& list.size()>0){
+	            account = list.get(0).getAccount();
+	        }
+	        return "Hello "+ account;
+	    }
+	}
 
-    @Autowired
-    private Environment environment;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @RequestMapping(value = "/hi", method = RequestMethod.GET)
-    @RefreshScope
-    public String hi(){
-        return "Hello "+ environment.getProperty("name");
-    }
-
-    @RequestMapping(value = "/hiDb", method = RequestMethod.GET)
-    public String hiDb(){
-        List<User> list = jdbcTemplate.query("select * from user",new Object[]{},new BeanPropertyRowMapper(User.class));
-        String account = "";
-        if(list!=null&& list.size()>0){
-            account = list.get(0).getAccount();
-        }
-        return "Hello "+ account;
-    }
-}
-```
 #### DataSourceConfig.java
-```
-@Configuration// 配置数据源
-public class DataSourceConfig {
 
-	@Bean
-	@ConfigurationProperties(prefix = "spring.datasource") // 数据源的自动配置的前缀
-	public DataSource dataSource() {
-		return DataSourceBuilder.create().build();
+	@Configuration// 配置数据源
+	public class DataSourceConfig {
+	
+		@Bean
+		@ConfigurationProperties(prefix = "spring.datasource") // 数据源的自动配置的前缀
+		public DataSource dataSource() {
+			return DataSourceBuilder.create().build();
+		}
 	}
-}
-```
+
 #### User.java
-```
-public class User {
-	private String id;
-	private String account;
 
-	public String getId() {
-		return id;
+	public class User {
+		private String id;
+		private String account;
+	
+		public String getId() {
+			return id;
+		}
+	
+		public void setId(String id) {
+			this.id = id;
+		}
+	
+		public String getAccount() {
+			return account;
+		}
+	
+		public void setAccount(String account) {
+			this.account = account;
+		}
 	}
 
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public String getAccount() {
-		return account;
-	}
-
-	public void setAccount(String account) {
-		this.account = account;
-	}
-}
-```
 启动App.java，可以在启动日志中看到：
-```
-2018-10-31 11:34:12.782  INFO 15804 --- [           main] c.c.c.ConfigServicePropertySourceLocator : Fetching config from server at: http://localhost:7000/
-2018-10-31 11:34:13.176  INFO 15804 --- [           main] c.c.c.ConfigServicePropertySourceLocator : Located environment: name=mail-service, profiles=[dev], label=null, version=null, state=null
-2018-10-31 11:34:13.177  INFO 15804 --- [           main] b.c.PropertySourceBootstrapConfiguration : Located property source: CompositePropertySource [name='configService', propertySources=[MapPropertySource {name='file:E://gitProjects//spring-cloud//springcloud-config//config//src//main//resources//properties/mail-service-dev.yml'}]]
-```
+
+	2018-10-31 11:34:12.782  INFO 15804 --- [           main] c.c.c.ConfigServicePropertySourceLocator : Fetching config from server at: http://localhost:7000/
+	2018-10-31 11:34:13.176  INFO 15804 --- [           main] c.c.c.ConfigServicePropertySourceLocator : Located environment: name=mail-service, profiles=[dev], label=null, version=null, state=null
+	2018-10-31 11:34:13.177  INFO 15804 --- [           main] b.c.PropertySourceBootstrapConfiguration : Located property source: CompositePropertySource [name='configService', propertySources=[MapPropertySource {name='file:E://gitProjects//spring-cloud//springcloud-config//config//src//main//resources//properties/mail-service-dev.yml'}]]
+
 打开浏览器访问`http://localhost:8000/hi`，则可以看到：`Hello cxy`，其中cxy为`mail-service-dev.yml`中配置的值；
 打开浏览器访问`http://localhost:8000/hiDb`，则可以看到：`Hello localhostRoot`，其中`localhostRoot`为`mail-service-dev.yml`中配置的数据库中查到的值；
 
@@ -226,80 +226,80 @@ public class User {
 ### ConfigClient
 #### pom.xml
 在原基础上增加
-```
-<!-- 客户端刷新配置需要用到 -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-```
+
+	<!-- 客户端刷新配置需要用到 -->
+	<dependency>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-starter-actuator</artifactId>
+	</dependency>
+
 #### bootstrap.yml
 在原基础上增加
-```
-management:
-  security:
-    enabled: false  # 关闭安全校验
-```
+
+	management:
+	  security:
+	    enabled: false  # 关闭安全校验
+
 #### App.java
-```
-@SpringBootApplication
-@RestController
-@RefreshScope  		//在需要刷新配置的地方，增加@RefreshScope注解
-public class App{
-    public static void main( String[] args )
-    {
-        SpringApplication.run(App.class, args);
-    }
 
-    @Autowired
-    private Environment environment;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @RequestMapping(value = "/hi", method = RequestMethod.GET)
-    public String hi(){
-        return "Hello "+ environment.getProperty("name");
-    }
-
-    @RequestMapping(value = "/hiDb", method = RequestMethod.GET)
-    public String hiDb(){
-        List<User> list = jdbcTemplate.query("select * from user",new Object[]{},new BeanPropertyRowMapper(User.class));
-        String account = "";
-        if(list!=null&& list.size()>0){
-            account = list.get(0).getAccount();
-        }
-        return "Hello "+ account;
-    }
-}
-``` 
-#### DataSourceConfig.java
-```
-@Configuration// 配置数据源
-public class DataSourceConfig {
-
-	@Bean
-	@RefreshScope// 刷新配置文件
-	@ConfigurationProperties(prefix = "spring.datasource") // 数据源的自动配置的前缀
-	public DataSource dataSource() {
-		return DataSourceBuilder.create().build();
+	@SpringBootApplication
+	@RestController
+	@RefreshScope  		//在需要刷新配置的地方，增加@RefreshScope注解
+	public class App{
+	    public static void main( String[] args )
+	    {
+	        SpringApplication.run(App.class, args);
+	    }
+	
+	    @Autowired
+	    private Environment environment;
+	
+	    @Autowired
+	    private JdbcTemplate jdbcTemplate;
+	
+	    @RequestMapping(value = "/hi", method = RequestMethod.GET)
+	    public String hi(){
+	        return "Hello "+ environment.getProperty("name");
+	    }
+	
+	    @RequestMapping(value = "/hiDb", method = RequestMethod.GET)
+	    public String hiDb(){
+	        List<User> list = jdbcTemplate.query("select * from user",new Object[]{},new BeanPropertyRowMapper(User.class));
+	        String account = "";
+	        if(list!=null&& list.size()>0){
+	            account = list.get(0).getAccount();
+	        }
+	        return "Hello "+ account;
+	    }
 	}
-}
-```
+
+#### DataSourceConfig.java
+
+	@Configuration// 配置数据源
+	public class DataSourceConfig {
+	
+		@Bean
+		@RefreshScope// 刷新配置文件
+		@ConfigurationProperties(prefix = "spring.datasource") // 数据源的自动配置的前缀
+		public DataSource dataSource() {
+			return DataSourceBuilder.create().build();
+		}
+	}
+
 启动App.java，在浏览器中访问`http://localhost:8000/hi`，展示`Hello cxy`；
 在浏览器中访问`http://localhost:8000/hiDb`，展示`Hello localhostRoot`；
 此时我们更改`mail-service-dev.yml`配置文件中的值：
-```
-#name: cxy
-name: cxy32
-spring:
-  datasource:
-    driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://10.8.5.100:3306/acmtc
-#    url: jdbc:mysql://10.8.3.40:3306/acmtc
-    username: root
-    password: root
-```
+
+	#name: cxy
+	name: cxy32
+	spring:
+	  datasource:
+	    driver-class-name: com.mysql.jdbc.Driver
+	    url: jdbc:mysql://10.8.5.100:3306/acmtc
+	#    url: jdbc:mysql://10.8.3.40:3306/acmtc
+	    username: root
+	    password: root
+
 通过POST请求访问`http://localhost:8000/refresh`，得到返回结果：
 ![](images/20181031115316.png)
 可以发现返回结果中有本次修改的内容，分别是`spring.datasource.url`和`name`；
@@ -312,58 +312,58 @@ SpringCloudBus，大家可以将它理解为管理和传播所有分布式项目
 ### ConfigServer
 #### pom.xml
 在原基础上增加：
-```
-<!-- 消息总线 -->
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-bus-amqp</artifactId>
-</dependency>
-<!--暴露各种指标 -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-```
+
+	<!-- 消息总线 -->
+	<dependency>
+	    <groupId>org.springframework.cloud</groupId>
+	    <artifactId>spring-cloud-starter-bus-amqp</artifactId>
+	</dependency>
+	<!--暴露各种指标 -->
+	<dependency>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-starter-actuator</artifactId>
+	</dependency>
+
 ### bootstrap.yml
 在原基础上增加mq配置
-```
-# mq配置
-spring:
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
 
-# 测试阶段关闭安全校验
-management:
-  security:
-    enabled: false
-```
+	# mq配置
+	spring:
+	  rabbitmq:
+	    host: localhost
+	    port: 5672
+	    username: guest
+	    password: guest
+	
+	# 测试阶段关闭安全校验
+	management:
+	  security:
+	    enabled: false
+
 ### ConfigClient
 #### pom.xml
 在原基础上增加：
-```
-<!-- 增加消息总线 -->
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-bus-amqp</artifactId>
-</dependency>
-```
+
+	<!-- 增加消息总线 -->
+	<dependency>
+	    <groupId>org.springframework.cloud</groupId>
+	    <artifactId>spring-cloud-starter-bus-amqp</artifactId>
+	</dependency>
+
 启动App.java，在浏览器中访问`http://localhost:8000/hi`，展示`Hello cxy32`；
 在浏览器中访问`http://localhost:8000/hiDb`，展示`Hello root`；
 此时我们更改`mail-service-dev.yml`配置文件中的值：
-```
-name: cxy
-# name: cxy32
-spring:
-  datasource:
-    driver-class-name: com.mysql.jdbc.Driver
-#    url: jdbc:mysql://10.8.5.100:3306/acmtc
-    url: jdbc:mysql://10.8.3.40:3306/acmtc
-    username: root
-    password: root
-```
+
+	name: cxy
+	# name: cxy32
+	spring:
+	  datasource:
+	    driver-class-name: com.mysql.jdbc.Driver
+	#    url: jdbc:mysql://10.8.5.100:3306/acmtc
+	    url: jdbc:mysql://10.8.3.40:3306/acmtc
+	    username: root
+	    password: root
+
 通过POST请求访问`http://localhost:7000/bus/refresh`，得到返回结果：
 ![](images/20181031140359.png)
 MQ中的消息为：
